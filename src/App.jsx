@@ -1,7 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { HistoryFileViewer } from "./HistoryFileViewer";
 
 const STORAGE_KEY = "customer-conversation-manager-v5";
 const SEPARATOR = "\n========================================\n";
+const HEADINGS = [
+    "Conversation so far",
+    "Customer messages not yet answered",
+    "Latest customer message",
+];
+
+
 
 const SAMPLE_QUERY = `### Conversation so far
 Customer: Hi!
@@ -23,7 +31,7 @@ const EMPTY_DATA = {
 
 /* ---------- Parsing & formatting ---------- */
 
-function getSection(text, heading, allHeadings) {
+export function getSection(text, heading, allHeadings) {
   const start = text.toLowerCase().indexOf(`### ${heading.toLowerCase()}`);
   if (start === -1) return null;
 
@@ -43,15 +51,10 @@ function getSection(text, heading, allHeadings) {
 
 function parseInitialQuery(raw) {
   const text = raw.replace(/\r\n/g, "\n").trim();
-  const headings = [
-    "Conversation so far",
-    "Customer messages not yet answered",
-    "Latest customer message",
-  ];
 
-  const conversation = getSection(text, headings[0], headings);
-  const unansweredRaw = getSection(text, headings[1], headings);
-  const latestRaw = getSection(text, headings[2], headings);
+  const conversation = getSection(text, HEADINGS[0], HEADINGS);
+  const unansweredRaw = getSection(text, HEADINGS[1], HEADINGS);
+  const latestRaw = getSection(text, HEADINGS[2], HEADINGS);
 
   if (conversation === null || unansweredRaw === null || latestRaw === null) {
     throw new Error(
@@ -103,8 +106,6 @@ function loadData() {
   }
   return EMPTY_DATA;
 }
-
-/* ---------- App ---------- */
 
 export default function App() {
   const [data, setData] = useState(loadData);
@@ -389,6 +390,9 @@ export default function App() {
             </section>
           </div>
         )}
+
+        {/* ---------- History file viewer (always available) ---------- */}
+        <HistoryFileViewer />
       </main>
     </div>
   );
